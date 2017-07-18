@@ -23,5 +23,8 @@
   "devDependencies": {
     "chai": "^4.1.0",
     "mocha": "^3.4.2"
+  },
+  "dependencies": {
+    "merge": "^1.2.0"
   }
 }
