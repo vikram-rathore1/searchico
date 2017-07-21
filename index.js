@@ -23,7 +23,7 @@ Node.prototype.insert = function (word, data, index, hyperCaching) {
 
 Node.prototype.collect = function (hyperCaching) {
     if (hyperCaching)
-    	return this.data;
+        return this.data;
 
     var results = {};
     for (var result in this.data)
@@ -64,11 +64,11 @@ Trie.prototype.search = function (keyword) {
 
 function sanitize (str, caseSensitive, replacements) {
     if (typeof(str) != 'string' && typeof(str) != 'number' && typeof(str) != 'boolean')
-    	return '';
+        return '';
 
     str = str.toString().trim();
     if (!caseSensitive)
-    	str = str.toLowerCase();
+        str = str.toLowerCase();
     if (replacements && typeof(replacements) === 'object') {
         var sanitized_str = '';
         for (var position = 0; position < str.length; position++) {
@@ -119,15 +119,27 @@ function Searchico (haystack, options) {
             this.config.replacements = umlauts;
     }
     else
-    	this.config.replacements = options.replacements;
+        this.config.replacements = options.replacements;
 
     if (this.config.hyper_indexing)
         this.trie = new Trie(this.config.hyper_caching);
 
     for (var element in haystack) {
-        var sanitized_data = [];
-        for (var prop in haystack[element]) {
-            var val = sanitize(haystack[element][prop], this.config.case_sensitive, this.config.replacements);
+        var sanitized_data = [], val;
+        if (typeof(haystack[element]) === 'object') {
+            for (var prop in haystack[element]) {
+                val = sanitize(haystack[element][prop], this.config.case_sensitive, this.config.replacements);
+                if (val) {
+                    sanitized_data.push(val);
+                    if (this.config.hyper_indexing) {
+                        for (var position = 0; position < val.length; position++)
+                            this.trie.insert(val.substr(position), element);
+                    }
+                }
+            }
+        }
+        else {
+            val = sanitize(haystack[element], this.config.case_sensitive, this.config.replacements);
             if (val) {
                 sanitized_data.push(val);
                 if (this.config.hyper_indexing) {
