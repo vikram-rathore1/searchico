@@ -22,7 +22,8 @@ Node.prototype.insert = function (word, data, index, hyperCaching) {
 };
 
 Node.prototype.collect = function (hyperCaching) {
-    if (hyperCaching) return this.data;
+    if (hyperCaching)
+    	return this.data;
 
     var results = {};
     for (var result in this.data)
@@ -62,10 +63,12 @@ Trie.prototype.search = function (keyword) {
 };
 
 function sanitize (str, caseSensitive, replacements) {
-    if (typeof(str) != 'string' && typeof(str) != 'number' && typeof(str) != 'boolean') return '';
+    if (typeof(str) != 'string' && typeof(str) != 'number' && typeof(str) != 'boolean')
+    	return '';
 
     str = str.toString().trim();
-    if (!caseSensitive) str = str.toLowerCase();
+    if (!caseSensitive)
+    	str = str.toLowerCase();
     if (replacements && typeof(replacements) === 'object') {
         var sanitized_str = '';
         for (var position = 0; position < str.length; position++) {
@@ -115,7 +118,8 @@ function Searchico (haystack, options) {
         else
             this.config.replacements = umlauts;
     }
-    else this.config.replacements = options.replacements;
+    else
+    	this.config.replacements = options.replacements;
 
     if (this.config.hyper_indexing)
         this.trie = new Trie(this.config.hyper_caching);
