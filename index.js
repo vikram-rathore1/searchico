@@ -2,99 +2,166 @@
 
 var merge = require('merge');
 
-function Node(value) {
-	this.data = {};
-	this.children = {};
+function Node () {
+    this.data = {};
+    this.children = {};
+}
+
+Node.prototype.insert = function (word, data, index, hyperCaching) {
+    if (hyperCaching && !this.is_root)
+        this.data[data] = true;
+
+    if (index < word.length) {
+        var nextCharacter = word[index];
+        if (!this.children[nextCharacter])
+            this.children[nextCharacter] = new Node();
+        this.children[nextCharacter].insert(word, data, index + 1, hyperCaching);
+    }
+    else
+        this.data[data] = true;
 };
 
-Node.prototype.insert = function(word, data, index, hyper_caching) {
-	if (hyper_caching && index > 0) this.data[data] = true;
+Node.prototype.collect = function (hyperCaching) {
+    if (hyperCaching) return this.data;
 
-	if (index < word.length) {
-		var next_character = word[index];
-		if (!this.children[next_character]) this.children[next_character] = new Node(next_character);
-		this.children[next_character].insert(word, data, index + 1);
-	}
-	else this.data[data] = true;
+    var results = {};
+    for (var result in this.data)
+        results[result] = true;
+
+    for (var child in this.children) {
+        var subResults = this.children[child].collect();
+        for (var subResult in subResults)
+            results[subResult] = true;
+    }
+    return results;
 };
 
-Node.prototype.collect = function(hyper_caching) {
-	if (hyper_caching) return this.data;
+Node.prototype.search = function (keyword, index, hyperCaching) {
+    if (index == keyword.length)
+        return this.collect(hyperCaching);
 
-	var results = {};
-	for (var result in this.data) results[result] = true;
-	for (var child in this.children) {
-		var sub_results = this.children[child].collect();
-		for (var result in sub_results) results[result] = true;
-	}
-	return results;
+    if (this.children[keyword[index]])
+        return this.children[keyword[index]].search(keyword, index + 1, hyperCaching);
+
+    return [];
 };
 
-Node.prototype.search = function(keyword, index, hyper_caching) {
-	if (index == keyword.length) return Object.keys(this.collect());
-	if (this.children[keyword[index]]) return this.children[keyword[index]].search(keyword, index + 1);
-	return [];
+function Trie (hyperCaching) {
+    this.root = new Node();
+    this.hyperCaching = hyperCaching;
+    this.root.is_root = true;
+}
+
+Trie.prototype.insert = function (word, data) {
+    if (word)
+        this.root.insert(word, data, 0, this.hyperCaching);
 };
 
-function Trie(hyper_caching) {
-	this.root = new Node('');
-	this.hyper_caching = hyper_caching;
+Trie.prototype.search = function (keyword) {
+    return (keyword && keyword.length) ? this.root.search(keyword, 0, this.hyperCaching) : [];
 };
 
-Trie.prototype.insert = function(word, data) {
-	if (word) {
-		this.root.insert(word, data, 0, this.hyper_caching);
-		for (var position = 1; position < word.length; position++) 
-			this.root.insert(word, data, position, this.hyper_caching);
-	}
-};
+function sanitize (str, caseSensitive, replacements) {
+    if (typeof(str) != 'string' && typeof(str) != 'number' && typeof(str) != 'boolean') return '';
 
-Trie.prototype.search = function(keyword) {
-	return this.root.search(keyword, 0, this.hyper_caching);
-};
+    str = str.toString().trim();
+    if (!caseSensitive) str = str.toLowerCase();
+    if (replacements && typeof(replacements) === 'object') {
+        var sanitized_str = '';
+        for (var position = 0; position < str.length; position++) {
+            if (replacements[str[position]])
+                sanitized_str += replacements[str[position]];
+            else
+                sanitized_str += str[position];
+        }
+        return sanitized_str;
+    }
+    return str;
+}
 
 function Searchico (haystack, options) {
-	var default_options = {
-		case_sensitive: false,
-		hyper_indexing: true,
-		hyper_caching: false
-	};
+    var umlauts = {
+        'ä': 'a', 'à': 'a', 'á': 'a', 'â': 'a', 'ä': 'a', 'æ': 'a', 'ã': 'a', 'å': 'a', 'ā': 'a',
+        'ç': 'c', 'ć': 'c', 'č': 'c',
+        'đ' : 'd', 'ð': 'd',
+        'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e', 'ē': 'e', 'ė': 'e', 'ę': 'e',
+        'î' : 'i', 'ï' : 'i', 'í' : 'i', 'ī' : 'i', 'į' : 'i', 'ì' : 'i',
+        'ł': 'l',
+        'ñ' : 'n', 'ń' : 'n', 'ň' : 'n',
+        'ô' : 'o', 'ö' : 'o', 'ò' : 'o', 'ó' : 'o', 'œ' : 'o', 'ø' : 'o', 'ō' : 'o', 'õ' : 'o',
+        'ř': 'r',
+        'ś': 's', 'š': 's',
+        'ß': 'ss',
+        'ť': 't',
+        'û' : 'u', 'ü' : 'u', 'ù' : 'u', 'ú' : 'u', 'ū' : 'u', 'ů' : 'u',
+        'ÿ': 'y', 'ý': 'y',
+        'ž' : 'z', 'ż' : 'z', 'Ż' : 'z', 'ź' : 'z',
+    };
+    var defaults = {
+        case_sensitive: false,
+        hyper_indexing: true,
+        hyper_caching: false,
+        replace_umlauts: true,
+        replacements: {}
+    };
 
-	this.data_list = haystack;
-	this.config = merge(default_options, options);
-	// Object.prototype.toString.call(options.keys) === '[object Array]'
+    this.data_list = haystack;
+    this.sanitized_data_list = [];
+    this.config = merge(defaults, options);
 
-	if (this.config.hyper_indexing) {
-		this.trie = new Trie(true);
-		for (var element in haystack) {
-			for (var prop in haystack[element]) 
-				this.trie.insert(haystack[element][prop], element);
-		}
-	}
+    if (this.config.replace_umlauts === true) {
+        if (options && typeof(options.replacements) === 'object')
+            this.config.replacements = merge(umlauts, options.replacements);
+        else
+            this.config.replacements = umlauts;
+    }
+    else this.config.replacements = options.replacements;
+
+    if (this.config.hyper_indexing)
+        this.trie = new Trie(this.config.hyper_caching);
+
+    for (var element in haystack) {
+        var sanitized_data = [];
+        for (var prop in haystack[element]) {
+            var val = sanitize(haystack[element][prop], this.config.case_sensitive, this.config.replacements);
+            if (val) {
+                sanitized_data.push(val);
+                if (this.config.hyper_indexing) {
+                    for (var position = 0; position < val.length; position++)
+                        this.trie.insert(val.substr(position), element);
+                }
+            }
+        }
+        this.sanitized_data_list.push(sanitized_data);
+    }
 }
 
 Searchico.prototype.find = function (keyword) {
-	var results = [];
-	if (this.hyper_indexing) {
-		var indices = this.trie.search(keyword);
-		for (var index in indices) {
-			results.push(this.data_list[indices[index]]);
-		}
-	}
-	else {
-		this.data_list.forEach(function(obj, index) {
-			for (var prop in obj) {
-				var val = obj[prop].toString();
-				if (val.indexOf(keyword) != -1) results.push(obj);
-			}
-		});
-	}
-	return results;
-}
+    keyword = sanitize(keyword, this.config.case_sensitive, this.config.replacements);
+    var results = [];
+    if (this.config.hyper_indexing) {
+        var resultIndices = this.trie.search(keyword);
+        for (var i in resultIndices)
+            results.push(this.data_list[i]);
+    }
+    else {
+        var len = this.sanitized_data_list.length;
+        for (var index = 0; index < len; ++index) {
+            var found = false, obj = this.sanitized_data_list[index];
+            obj.every(function(str) {
+                found = (str.indexOf(keyword) != -1);
+                return !found;
+            });
+            if (found)
+                results.push(this.data_list[index]);
+        }
+    }
+    return results;
+};
 
 function init (haystack, options) {
-	var s = new Searchico(haystack, options);
-	return s;
+    var instance = new Searchico(haystack, options);
+    return instance;
 }
 
 module.exports = init;
