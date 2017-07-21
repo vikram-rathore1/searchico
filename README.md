@@ -20,18 +20,19 @@ var collection = searchico([
     { id: 3, name: 'Jack Tyson', location: 'New Orleans' },
     { id: 4, name: 'Tyler Miles', location: 'Camas' }
 ]);
+var results1 = collection.find('alex');
+var results2 = collection.find('orlea');
 
-var results = collection.find('alex');
-/* returns [
+/* 
+results1 = [
     { id: 1, name: 'Alex Carter', location: 'New Orleans' },
     { id: 2, name: 'Alexey Hopper', location: 'Lake Charles' }
-] */
-
-var results = collection.find('orlea');
-/* returns [
+] 
+results2 = [
     { id: 1, name: 'Alex Carter', location: 'New Orleans' },
     { id: 3, name: 'Jack Tyson', location: 'New Orleans' }
-] */
+] 
+*/
 ```
 
 ### Options
@@ -50,4 +51,28 @@ var options = {
     replace_umlauts: true,  // true by default, allows finding umlauts with their english alphabets
 }
 var collection = searchico(data, options);
+var results = collection.find('Ty');
 ```
+
+### Usages
+ - **Object arrays**
+   ```js
+    var data = [{ id:2, name: 'Apple' }, { id: 14, name: 'Orange' }];
+    var collection = searchico(data);
+   ```
+ - **String Arrays**
+   ```js
+   var data = ['Apple', 'Orange', 'Guava'];
+   var collection = searchico(data);
+   ```
+ - **Mixed Arrays**
+   ```js
+   var data = ['Apple', { id: 14, name: 'Orange' }, 'Guava'];
+   var collection = searchico(data);
+   ```
+
+## License
+[MIT][license] © [Vikram Singh Rathore][author]
+
+[license]: LICENSE
+[author]: https://github.com/illusion1993
