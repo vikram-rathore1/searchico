@@ -104,22 +104,15 @@ function Searchico (haystack, options) {
         case_sensitive: false,
         hyper_indexing: true,
         hyper_caching: false,
-        replace_umlauts: true,
-        replacements: {}
+        replace_umlauts: true
     };
 
     this.data_list = haystack;
     this.sanitized_data_list = [];
     this.config = merge(defaults, options);
 
-    if (this.config.replace_umlauts === true) {
-        if (options && typeof(options.replacements) === 'object')
-            this.config.replacements = merge(umlauts, options.replacements);
-        else
-            this.config.replacements = umlauts;
-    }
-    else
-        this.config.replacements = options.replacements;
+    if (this.config.replace_umlauts === true)
+        this.config.replacements = umlauts;
 
     if (this.config.hyper_indexing)
         this.trie = new Trie(this.config.hyper_caching);
