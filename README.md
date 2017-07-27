@@ -1,4 +1,9 @@
 # Searchico
+[![Build Status](https://travis-ci.org/illusion1993/searchico.svg?branch=master)](https://travis-ci.org/illusion1993/searchico)
+[![npm version](https://badge.fury.io/js/searchico.svg)](https://badge.fury.io/js/searchico)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/illusion1993/searchico/master/LICENSE)
+[![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badge/)
+
 > A **very** fast full-text search in JavaScript
 
 ## Install
