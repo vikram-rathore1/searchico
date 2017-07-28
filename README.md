@@ -43,18 +43,19 @@ results2 = [
 ### Options
 ```js
 var searchico = require('searchico');
+var options = {
+    case_sensitive: true,   // false by default
+    hyper_indexing: true,   // true by default, high speed search, memory intensive
+    hyper_caching: true,    // false by default, even faster, memory intensive
+    replace_umlauts: true,  // true by default, allows finding umlauts with their english alphabets
+    deep: false             // true by default, allows indexing objects deeply
+};
 var data = [
     { id: 1, name: 'Alex Carter', location: 'New Orleans' },
     { id: 2, name: 'Alexey Hopper', location: 'Lake Charles' },
     { id: 3, name: 'Jack Tyson', location: 'New Orleans' },
     { id: 4, name: 'Tyler Miles', location: 'Camas' }
 ];
-var options = {
-    case_sensitive: true,   // false by default
-    hyper_indexing: true,   // true by default, high speed search, memory intensive
-    hyper_caching: true,    // false by default, even faster, memory intensive
-    replace_umlauts: true,  // true by default, allows finding umlauts with their english alphabets
-}
 var collection = searchico(data, options);
 var results = collection.find('Ty');
 ```
