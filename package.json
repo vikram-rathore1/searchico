@@ -1,6 +1,6 @@
 {
   "name": "searchico",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A very fast full-text search in JavaScript",
   "main": "index.js",
   "scripts": {
