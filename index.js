@@ -62,11 +62,14 @@ Trie.prototype.search = function (keyword) {
     return (keyword && keyword.length) ? this.root.search(keyword, 0, this.hyperCaching) : [];
 };
 
-function sanitize (str, caseSensitive, replacements) {
+function sanitize (str, config) {
     if (typeof(str) != 'string' && typeof(str) != 'number' && typeof(str) != 'boolean')
         return '';
 
     str = str.toString().trim();
+    var caseSensitive = config.case_sensitive,
+        replacements = config.replacements;
+
     if (!caseSensitive)
         str = str.toLowerCase();
     if (replacements && typeof(replacements) === 'object') {
@@ -80,6 +83,29 @@ function sanitize (str, caseSensitive, replacements) {
         return sanitized_str;
     }
     return str;
+}
+
+function dig (obj, config, level) {
+    var results = [];
+    config = config || {};
+    if (typeof(obj) === 'object' && (config.deep === true || level === 0)) {
+        for (var prop in obj)
+            results = results.concat(dig(obj[prop], config, level + 1));
+    }
+    else {
+        var val = sanitize(obj, config);
+        if (val)
+            results.push(val);
+    }
+    return results;
+}
+
+function flatten (list, config) {
+    var sanitized_list = [];
+    list.forEach(function(element, index) {
+        sanitized_list.push(dig(element, config, 0));
+    });
+    return sanitized_list;
 }
 
 function Searchico (haystack, options) {
@@ -104,49 +130,31 @@ function Searchico (haystack, options) {
         case_sensitive: false,
         hyper_indexing: true,
         hyper_caching: false,
-        replace_umlauts: true
+        replace_umlauts: true,
+        deep: true
     };
 
-    this.data_list = haystack;
-    this.sanitized_data_list = [];
     this.config = merge(defaults, options);
+    this.config.replacements = (this.config.replace_umlauts === true) ? umlauts : {};
 
-    if (this.config.replace_umlauts === true)
-        this.config.replacements = umlauts;
+    this.data_list = haystack;
+    this.sanitized_data_list = flatten(haystack, this.config);
 
-    if (this.config.hyper_indexing)
+    if (this.config.hyper_indexing) {
         this.trie = new Trie(this.config.hyper_caching);
-
-    for (var element in haystack) {
-        var sanitized_data = [], val;
-        if (typeof(haystack[element]) === 'object') {
-            for (var prop in haystack[element]) {
-                val = sanitize(haystack[element][prop], this.config.case_sensitive, this.config.replacements);
-                if (val) {
-                    sanitized_data.push(val);
-                    if (this.config.hyper_indexing) {
-                        for (var position = 0; position < val.length; position++)
-                            this.trie.insert(val.substr(position), element);
-                    }
-                }
+        for (var row in this.sanitized_data_list) {
+            for (var column in this.sanitized_data_list[row]) {
+                var str = this.sanitized_data_list[row][column];
+                for (var position = 0; position < str.length; position++)
+                    this.trie.insert(str.substring(position), row);
             }
         }
-        else {
-            val = sanitize(haystack[element], this.config.case_sensitive, this.config.replacements);
-            if (val) {
-                sanitized_data.push(val);
-                if (this.config.hyper_indexing) {
-                    for (var position = 0; position < val.length; position++)
-                        this.trie.insert(val.substr(position), element);
-                }
-            }
-        }
-        this.sanitized_data_list.push(sanitized_data);
     }
+
 }
 
 Searchico.prototype.find = function (keyword) {
-    keyword = sanitize(keyword, this.config.case_sensitive, this.config.replacements);
+    keyword = sanitize(keyword, this.config);
     var results = [];
     if (this.config.hyper_indexing) {
         var resultIndices = this.trie.search(keyword);
