@@ -2,8 +2,10 @@
 
 var chai = require('chai');
 var merge = require('merge');
-var testData = require('./test_data');
+var data = require('./test_data');
 var searchico = require('../');
+
+var testData = new data.testData();
 
 for (var dataset in testData) {    
     describe(dataset + ': Hyper-Indexing: Enabled, Hyper-Caching: Disabled', function() {

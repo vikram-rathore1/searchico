@@ -62,6 +62,10 @@ Trie.prototype.search = function (keyword) {
     return (keyword && keyword.length) ? this.root.search(keyword, 0, this.hyperCaching) : [];
 };
 
+function isArray (obj) {
+    return Object.prototype.toString.call(obj) === '[object Array]';
+}
+
 function sanitize (str, config) {
     if (typeof(str) != 'string' && typeof(str) != 'number' && typeof(str) != 'boolean')
         return '';
@@ -85,10 +89,29 @@ function sanitize (str, config) {
     return str;
 }
 
+function pluck (obj, key, level) {
+    var plucked_object = [];
+    if (typeof(key) === 'string' && key.length) {
+        var sub_keys = key.split('.');
+        if (level == sub_keys.length)
+            return (obj !== undefined) ? obj : [];
+
+        if (isArray(obj)) {
+            obj.forEach(function(element) {
+                plucked_object = plucked_object.concat(pluck(element, key, level));
+            })
+        }
+        else {
+            return (obj !== undefined) ? pluck(obj[sub_keys[level]], key, level + 1) : [];
+        }
+    }
+    return plucked_object;
+}
+
 function dig (obj, config, level) {
     var results = [];
     config = config || {};
-    if (typeof(obj) === 'object' && (config.deep === true || level === 0)) {
+    if ((typeof(obj) === 'object' && (config.deep === true || level === 0)) || isArray(obj)) {
         for (var prop in obj)
             results = results.concat(dig(obj[prop], config, level + 1));
     }
@@ -103,7 +126,17 @@ function dig (obj, config, level) {
 function flatten (list, config) {
     var sanitized_list = [];
     list.forEach(function(element, index) {
-        sanitized_list.push(dig(element, config, 0));
+        if(isArray(config.keys) && config.keys.length) {
+            var sanitized_object = [];
+            config.keys.forEach(function(key) {
+                var target_obj = pluck(element, key, 0);
+                if (target_obj)
+                    sanitized_object = sanitized_object.concat(dig(target_obj, config, 0));
+            });
+            sanitized_list.push(sanitized_object);
+        }
+        else
+            sanitized_list.push(dig(element, config, 0));
     });
     return sanitized_list;
 }
@@ -131,7 +164,8 @@ function Searchico (haystack, options) {
         hyper_indexing: true,
         hyper_caching: false,
         replace_umlauts: true,
-        deep: true
+        deep: true,
+        keys: []
     };
 
     this.config = merge(defaults, options);
@@ -149,6 +183,7 @@ function Searchico (haystack, options) {
                     this.trie.insert(str.substring(position), row);
             }
         }
+        this.sanitized_data_list = undefined;
     }
 
 }
@@ -175,6 +210,10 @@ Searchico.prototype.find = function (keyword) {
     }
     return results;
 };
+
+Searchico.prototype.data = function () {
+    return this.data_list;
+}
 
 function init (haystack, options) {
     var instance = new Searchico(haystack, options);
