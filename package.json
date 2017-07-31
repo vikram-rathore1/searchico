@@ -12,7 +12,12 @@
   },
   "keywords": [
     "search",
-    "text"
+    "text",
+    "index",
+    "offline search",
+    "full text search",
+    "filter",
+    "suggest"
   ],
   "author": "Vikram Singh Rathore <rathore.vikram624@gmail.com>",
   "license": "MIT",
