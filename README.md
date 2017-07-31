@@ -48,7 +48,8 @@ var options = {
     hyper_indexing: true,   // true by default, high speed search, memory intensive
     hyper_caching: true,    // false by default, even faster, memory intensive
     replace_umlauts: true,  // true by default, allows finding umlauts with their english alphabets
-    deep: false             // true by default, allows indexing objects deeply
+    deep: false,            // true by default, allows indexing objects deeply
+    keys: ['id', 'name']    // name of keys in objects to add into index
 };
 var data = [
     { id: 1, name: 'Alex Carter', location: 'New Orleans' },
