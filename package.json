@@ -30,6 +30,6 @@
     "mocha": "^3.4.2"
   },
   "dependencies": {
-    "merge": "^1.2.0"
+    "merge": "^2.1.1"
   }
 }
