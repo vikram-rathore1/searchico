@@ -27,7 +27,7 @@
   "homepage": "https://github.com/illusion1993/searchico#readme",
   "devDependencies": {
     "chai": "^4.1.0",
-    "mocha": "^3.4.2"
+    "mocha": "^10.2.0"
   },
   "dependencies": {
     "merge": "^1.2.0"
